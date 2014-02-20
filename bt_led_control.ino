@@ -127,7 +127,7 @@ void processCommand() {
     // this command has a numeric parameter directly behind the
     // command itself.
     char *parsePointer = commandBuffer + strlen(commandBuffer) + 1;
-    currentLevel = parseNumber(&parsePointer);
+    currentLevel = capNumber(parseNumber(&parsePointer), 0, 255);
     
     
     // no need to treat out-of-range-numbers as errors ... just
@@ -139,6 +139,27 @@ void processCommand() {
 
     COMPORT.println(currentLevel);
     analogWrite(LED_PIN, currentLevel);
+  }
+  else if(strcmp(commandBuffer, "FADE") == 0) {
+    COMPORT.print("200 FADE ");
+    
+    // this command has a numeric parameter directly behind the
+    // command itself.
+    char *parsePointer = commandBuffer + strlen(commandBuffer) + 1;
+    int targetLevel = capNumber(parseNumber(&parsePointer), 0, 255);
+    int fadeDelay = capNumber(parseNumber(&parsePointer), 0, 100);
+    
+    
+    COMPORT.print(targetLevel);
+    COMPORT.print(" ");
+    COMPORT.println(fadeDelay);
+
+    while(currentLevel != targetLevel)
+    {
+      currentLevel = currentLevel < targetLevel ? currentLevel + 1 : currentLevel - 1;
+      analogWrite(LED_PIN, currentLevel);
+      delay(fadeDelay);
+    }
   }
   else {
     COMPORT.print("405 ");
@@ -160,10 +181,27 @@ void processCommand() {
  * parsed.
  */
 int parseNumber(char** parsePointer) {
-  int result = strtol(*parsePointer, parsePointer, NUMBER_BASE);
-  parsePointer++;
+  int result = strtol(*parsePointer, NULL, NUMBER_BASE);
+  *parsePointer+=(strlen(*parsePointer) + 1);
   
   return result;
+}
+
+/**
+ * Clips the number to the interval defined by the bounds.
+ *
+ * If number is smaller tan lowerBound, lowerBound is returned. If it's larger than
+ * upperBound, upperBound is returned. If it is between the bounds, number itself
+ * is returned.
+ */
+int capNumber(int number, int lowerBound, int upperBound) {
+    if(number < lowerBound)
+      return lowerBound;
+    
+    if(number > upperBound)
+      return upperBound;
+     
+    return number;
 }
 
 
