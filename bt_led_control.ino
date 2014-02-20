@@ -78,7 +78,7 @@ void loop() {
     // if the command is terminated (10 == newline) or if a space is encountered,
     // a 0 char is written to the buffer. this makes it extremely easy to parse
     // the components later on - see parseNumber()
-    if(current == 10 || current == ' ')
+    if(current == 10 || current == 13 || current == ' ')
       commandBuffer[commandCursor++] = 0;
     else
       commandBuffer[commandCursor++] = current;
@@ -86,7 +86,7 @@ void loop() {
     // if the maximum command length is reached or if the command is terminated with a new line
     // character, the command buffer is terminated with a 0 chat and the command processing
     // routine is called.    
-    if(commandCursor >= CMD_BUFFER_SIZE || current == 10) {
+    if(commandCursor >= CMD_BUFFER_SIZE || current == 10 || current == 13) {
       commandBuffer[CMD_BUFFER_SIZE] = 0;
       commandCursor = 0;
       processCommand();
