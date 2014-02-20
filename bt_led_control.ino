@@ -18,6 +18,19 @@
    
    The commands may have an arbitrary amount of arguments.
    
+   Commands that return a value act a little different. Example:
+   
+   ON
+   200 ON
+   STATUS
+   200 STATUS 255
+   LEVEL 128
+   200 LEVEL 128
+   STATUS
+   200 STATUS 128
+   
+   As you can see, the return value is simply added to the echoed command.
+   
    This code was written by Gregor Ottmann. It is public domain. Neither strings nor warranties
    of any kind are attached.
 ================================================================================================= */
@@ -48,6 +61,8 @@ char  commandBuffer[CMD_BUFFER_SIZE+1];
 // the serial port will be written.
 int   commandCursor = 0;
 
+// the current level of the LED which will be returned by the STATUS command
+int currentLevel = 0;
 
 void setup() {
   pinMode(LED_PIN, OUTPUT);
@@ -82,7 +97,7 @@ void loop() {
 /**
  * Process the command that was read from the serial port.
  *
- * Valid commands are "ON", "OFF" and "LEVEL <level>".
+ * Valid commands are "ON", "OFF", "LEVEL <level>" and "STATUS".
  */
 void processCommand() {
   // uppercase the command
@@ -95,10 +110,16 @@ void processCommand() {
   if(strcmp(commandBuffer, "ON") == 0) {
     COMPORT.println("200 ON");
     digitalWrite(LED_PIN, HIGH);
+    currentLevel = 255;
   }
   else if(strcmp(commandBuffer, "OFF") == 0) {
     COMPORT.println("200 OFF");
     digitalWrite(LED_PIN, LOW);
+    currentLevel = 0;
+  }
+  else if(strcmp(commandBuffer, "STATUS") == 0) {
+    COMPORT.print("200 STATUS ");
+    COMPORT.println(currentLevel);
   }
   else if(strcmp(commandBuffer, "LEVEL") == 0) {
     COMPORT.print("200 LEVEL ");
@@ -106,18 +127,18 @@ void processCommand() {
     // this command has a numeric parameter directly behind the
     // command itself.
     char *parsePointer = commandBuffer + strlen(commandBuffer) + 1;
-    int level = parseNumber(&parsePointer);
+    currentLevel = parseNumber(&parsePointer);
     
-    COMPORT.println(level);
     
     // no need to treat out-of-range-numbers as errors ... just
     // cap the range.
-    if(level < 0)
-      digitalWrite(LED_PIN, LOW);
-    else if(level > 255)
-      digitalWrite(LED_PIN, HIGH);
-    else
-      analogWrite(LED_PIN, level);
+    if(currentLevel < 0)
+      currentLevel = 0;
+    else if(currentLevel > 255)
+      currentLevel = 255;
+
+    COMPORT.println(currentLevel);
+    analogWrite(LED_PIN, currentLevel);
   }
   else {
     COMPORT.print("405 ");
