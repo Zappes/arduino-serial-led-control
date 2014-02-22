@@ -46,7 +46,11 @@
 // if one has an arduino mega, it would be possible to use a different
 // serial port for the bluetooth module. or just use this one and debug using
 // the usb-serial monitor in the arduino IDE
-#define COMPORT Serial
+//
+// On an Arduino Mega, "Serial1" on Pins 18/19 is a good thing as it needn't be
+// disconnected for programming over USB. On an Arduino with only one serial line
+// or when using the USB connection you'll have to use "Serial".
+#define COMPORT Serial1
 
 // the speed at which the serial communication should take place
 #define COMSPEED 9600
