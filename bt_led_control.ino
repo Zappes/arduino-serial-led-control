@@ -131,7 +131,7 @@ void processCommand() {
     // this command has a numeric parameter directly behind the
     // command itself.
     char *parsePointer = commandBuffer + strlen(commandBuffer) + 1;
-    currentLevel = capNumber(parseNumber(&parsePointer), 0, 255);
+    currentLevel = constrain(parseNumber(&parsePointer), 0, 255);
     
     
     // no need to treat out-of-range-numbers as errors ... just
@@ -150,8 +150,8 @@ void processCommand() {
     // this command has a numeric parameter directly behind the
     // command itself.
     char *parsePointer = commandBuffer + strlen(commandBuffer) + 1;
-    int targetLevel = capNumber(parseNumber(&parsePointer), 0, 255);
-    int fadeDelay = capNumber(parseNumber(&parsePointer), 0, 100);
+    int targetLevel = constrain(parseNumber(&parsePointer), 0, 255);
+    int fadeDelay = constrain(parseNumber(&parsePointer), 0, 100);
     
     
     COMPORT.print(targetLevel);
@@ -190,22 +190,3 @@ int parseNumber(char** parsePointer) {
   
   return result;
 }
-
-/**
- * Clips the number to the interval defined by the bounds.
- *
- * If number is smaller tan lowerBound, lowerBound is returned. If it's larger than
- * upperBound, upperBound is returned. If it is between the bounds, number itself
- * is returned.
- */
-int capNumber(int number, int lowerBound, int upperBound) {
-    if(number < lowerBound)
-      return lowerBound;
-    
-    if(number > upperBound)
-      return upperBound;
-     
-    return number;
-}
-
-
